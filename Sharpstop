@@ -1,0 +1,47 @@
+let rec filter_deck (deck : card list)= match deck with 
+                                        x::xs -> if x.typee ="MINION" then x ::(filter_deck xs)
+                                                    else filter_deck xs;;
+
+let fight (deck1 : deck) (deck2 : deck) : player * player * int =
+    let p1 = { name ="P1"; life = 30; deck = filter_deck deck1 }    // dummy players
+    let p2 = { name ="P2"; life = 30; deck = filter_deck deck2 }
+
+    let mutable turn = 1 
+    let mutable quit = false
+    while not quit && p1.life > 0 && p2.life > 0 do
+     print_turn_begin turn
+    let mana = if turn > 10 then 10 else turn 
+    let c1 = draw_card mana p1
+    let c2 = draw_card mana p2
+    let att (health1 : int)(health2 : int) = if health1 > 0 && health2 < 0 
+                                              then (p1.life = p1.life) && (p2.life = (p2.life + health2)) 
+                                             elif health1 < 0 && health2 > 0 
+                                              then (p2.life=p2.life) && (p1.life = (p1.life + health1))  
+                                             else (p1.life = (p1.life + health1)) && (p2.life = (p2.life + health2))
+                                  
+    let rec acc (c1 : card)( c2 :card) = if ((c1.health=c1.health - c2.attack) && (c1.health < 0))|| ((c2.health=(c2.health - c1.attack)) && (c2.health < 0))
+                                            then att c1.health c2.health
+                                         else acc c1 c2 
+    match c1, c2 with
+           [],_-> p1.life <- p1.life-c2.attack //c1 non ha niente, c2 ha la carda
+          |_,[]-> p2.life <- p2.life-c1.attack //c1 ha la carda, c2 non ha niente
+          |_,_-> if c1.attack > c2.health && c2.attack > c1.health //se il attack di c1 grande di il health di c2 e il attack di c2 grande di il health di c1
+                        then p1.life <- p1.life - (c2.attack - c1.health) && p2.life<- p2.life - (c1.attack - c2.health)
+                  elif c1.attack > c2.health && c2.attack < c1.health // se il attack di c1 grande di il health di c2 e il attack di c2 piccolo di il health di c1
+                        then p1.life=p1.life && p2.life<- p2.life - (c1.attack - c2.health)
+                  elif c1.attack < c2.health && c2.attack > c1.health // se il attack di c1 piccolo di il health di c2 e il attack di c2 grande di il health di c1
+                        then p2.life=p2.life && p1.life<- p1.life - (c2.attack - c1.health)
+                 elif c1.attack < c2.health && c2.attack < c1.health // se loro devono attacarsi molti volti
+                        then acc c1 c2
+    while (c1.health <0) do print_card_death c1 
+    while (c2.health <0) do print_card_death c2
+    match c1, c2 with
+           [],[]->print_turn_no_cards p1 p2 &&  print_turn_end p1 p2 // stampa quando nessuno dei due giocatori ha una carta 
+          |[],_->print_turn_1card p1 c2 &&  print_turn_end p1 p2 // stampa quando solo p2 ha una carta da giocare e p1 non ha niente
+          |_,[]->print_turn_1card p2 c1 &&  print_turn_end p1 p2 // stampa quando solo p1 ha una carta da giocare e p2 non ha niente
+          |_,_->print_turn_2cards c1 c2 &&  print_turn_end p1 p2 // stampa quando nessuno dei due giocatori ha una carta      
+
+       
+    p1, p2, turn+1
+
+
