@@ -1,0 +1,60 @@
+
+// 1.
+let rec inserisci elem pos l = 
+    if pos = 0 then elem :: l
+    else match l with
+           []->[]
+         | [x]-> x::elem::[]
+         | x::xs->x::inserisci elem (pos-1) xs
+
+
+
+// 2.
+//let rec numlist l = match l with
+//                     []->0
+//                   | [x]-> 1
+//                   | x::xs->1+(numlist xs)
+//
+//let rec elem l n =match l with
+//                     []->[]
+//                   | [x]->[x]
+//                   | x::xs->if n=1 then [x]
+//                            else elem xs (n-1)
+//
+//let rec jiance l a1 a2 =
+//    if (elem l a1)=(elem l a2) && a1=1 then true
+//    elif (elem l a1)=(elem l a2) && a1>1 then jiance l (a1-1) (a2+1)
+//    else false
+//
+//let palindroma l = 
+//    let media=(numlist l)/2
+//    if (numlist l)%2=1 then  jiance l media (media+2)
+//    else jiance l media (media+1)
+
+let rec girare l=match l with
+                    []->[]
+                   |[x]->[x]
+                   |x::xs->girare(xs)@[x]
+
+let palindroma l= if (girare l)=l then true
+                  else false
+
+// 3.
+let rec ordinata l= match l with
+                            []->[]
+                          | [x]->[x]
+                          | x::y::ys-> if x>y then y::ordinata (x::ys)
+                                       else x::ordinata (y::ys)
+
+let rec cor l= match l with
+                []->true
+               |[x]->true
+               |x::y::ys-> if x<=y then cor (y::ys)
+                           else false
+
+let rec cor_ordinata l= if cor l = true then l
+                        else cor_ordinata(ordinata l)
+
+let  unione_ordinata l1 l2 = cor_ordinata (l1@l2)
+
+    
