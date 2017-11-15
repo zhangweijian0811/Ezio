@@ -11,15 +11,22 @@ let rec unzip (l : ('a * 'b) list) : 'a list * 'b list =
                    |(x,y)::zs->let (xs,ys)=unzip zs
                                 in (x::xs,y::ys);;
 
+let a (l:float list) :float = 
+    match l with 
+            []->0.0
+            |[x]->x
+            |x::xs->x
+             
 let rec max (l:float list)(n:float ) : float =  match l with
                                                   []->0.0
                                                  |[x]->if x>n then x
                                                        else n
                                                  |x::xs->if x >n then max xs x
                                                          else max xs n
+
 let rec min (l:float list)(n:float ) :float = match l with
                                                   []->0.0
-                                                 |[x]->if x<n then n
+                                                 |[x]->if x<n then x
                                                        else n
                                                  |x::xs->if x<n then min xs x
                                                          else min xs n
@@ -34,5 +41,7 @@ let rec num l :float = match l with
                        |[x]->1.0
                        |x::xs->1.0+ num xs
 
-let statistica_lista (l : float list) =if somma l >=0.0 then ((min l (max l 0.0)),(somma l)/(num l),(max l 0.0))
-                                       else (min l (somma l)),(somma l)/(num l),(max l (min l (somma l)))
+let statistica_lista (l : float list) =
+     let n = a l
+     ((min l n),(somma l)/(num l),(max l n ))
+    
