@@ -1,0 +1,30 @@
+let rec map (f : 'a -> 'b -> 'c) (l1 : 'a list) (l2 : 'b list) : 'c list = 
+                match (l1,l2) with 
+                        ([],[])->[]
+                        |(x::xs,y::ys)-> (f x y)::map f xs ys
+                        |(_,_)->failwith"Liste di lunghezza diversa"
+
+ 
+let rec int_to_binary n =
+        let a = 1
+        let rec binary n a =
+            if a=1 && n=0 then [0]
+            elif n%2=0 && n>0 then  binary (n/2) 2  @ [0]
+            elif n%2<>0 && n >0 then binary (n/2) 2 @[1]
+            else []  
+        in binary n 1
+
+let rec esiste n l = 
+        match l with
+                []->[]
+                |[x]->if n<>x then []
+                        else [x]
+                |x::xs-> if n<>x then esiste n xs
+                           else x::esiste n xs
+                               
+let rec intersezione l1 l2 = 
+    if l2=[] then []
+      else  match l1 with
+                   []->[]
+                   |[x]->esiste x l2
+                   |x::xs->(esiste x l2) @ intersezione xs l2
