@@ -91,3 +91,101 @@ let rec indent (lines : string list) =
     
     //(0, s) :: indent ss
 
+module FSharpCodeFormatter.Formatter
+
+open Lib
+//let f (s :string )= if s.Contains"let"=true then 1
+//                    elif s.Contains"match"=true then 2
+//                    elif s.Contains"eli"=true then 5
+//                    elif s.Contains"if"=true then 3
+//                    elif s.Contains"else"=true then 4
+//                    elif s.Contains"in"=true then 6
+//                    elif s.Contains"|"=true then 7
+//                    else 0 
+
+let rec prefix l1 l2 = match l1,l2 with  
+                       |[],[]-> true 
+                       |[],_-> true 
+                       |_,[]-> false 
+                       |x::xs,y::ys -> if x=y then prefix xs ys 
+                                       else false 
+
+let rec sublist l1 l2 = match l1,l2 with  
+                        |[],[]-> true 
+                        |[],_-> true 
+                        |_,[]-> false 
+                        |x::xs,y::ys -> if prefix l1 l2 then true
+                                        else sublist l1 ys
+
+
+
+let f liststring = match liststring with
+                               |[] -> 0
+                               |xs::xss -> if sublist ["let"] liststring then 1
+                                           elif sublist ["match"] liststring then 2
+                                           elif sublist ["if"] liststring then 3
+                                           elif sublist ["else"] liststring then 4
+                                           elif sublist ["elif"] liststring then 5 
+                                           elif sublist ["in"] liststring then 6
+                                           elif sublist ["|"] liststring then 7
+                                           else 0
+
+
+//let_n 为了知道是不是两个let连在一起
+//match_n 固定接下去|[]之前的tab
+//list_int per IN
+//list_if per else e elif 
+let rec f_a (sl:string list) (riga: int) (tab: int) (let_n: int) (match_n : int) (list_int : int list) (list_if :int list)  :(int list) =  
+            match sl with
+                 |[]-> [0]
+                 |x::y::xs-> match f(tokenize_line(trim_line(x))) with
+                                 |1->if riga=0 then 0 :: (f_a (y::xs) 1 0 0 0 [0] [0])
+                                     elif let_n =1 then match list_int with
+                                                            |z::zs->if z = tab 
+                                                                      then tab :: (f_a (y::xs) (riga+1) tab 1 0  list_int list_if )
+                                                                    else tab :: (f_a (y::xs) (riga+1) tab 1 0 ( tab :: list_int) list_if )
+                                                            |_->[]         
+                                     else match list_int with
+                                                            |[]->(tab+1) :: (f_a (y::xs) (riga+1) (tab+1) 1 0 ( tab+1 :: list_int) list_if ) //non esiste
+                                                            |[z]->if z =(tab+1) 
+                                                                    then (tab+1) :: (f_a (y::xs) (riga+1) (tab+1) 1 0 list_int list_if )
+                                                                  else (tab+1) :: (f_a (y::xs) (riga+1) (tab+1) 1 0 ( tab+1 :: list_int) list_if )
+                                                            |z::zs->if z =(tab+1) 
+                                                                        then (tab+1) :: (f_a (y::xs) (riga+1) (tab+1) 1 0 list_int list_if )
+                                                                    else (tab+1) :: (f_a (y::xs) (riga+1) (tab+1) 1 0 ( tab+1 :: list_int) list_if )
+                                                                                //match_n 
+                                 |2-> (tab+1)::(f_a (y::xs) (riga+1) (tab+1) 0 (tab+1) list_int list_if )
+                                 |3-> (tab+1)::(f_a (y::xs) (riga+1) (tab+1) 0 match_n list_int (tab+1 :: list_if))
+                                 |4-> match list_if with
+                                          |[]->[0]
+                                          |[z]->z::(f_a (y::xs) (riga+1) z 0 match_n list_int [] ) 
+                                          |z::zs->z::(f_a (y::xs) (riga+1) z 0 match_n list_int zs )
+                                 |5-> match list_if with 
+                                          |[]->[0]
+                                          |[z]->z::(f_a (y::xs) (riga+1) z 0 match_n  list_int [z])
+                                          |z::zs-> z::(f_a (y::xs) (riga+1) tab 0 match_n  list_int (z::zs))
+                                 |6-> match list_int with
+                                          |[]->[0]   //non esiste
+                                          |z::zs-> z::(f_a (y::xs) (riga+1)  tab 0 match_n zs list_if )
+                                 |7->if (f(tokenize_line(trim_line(y)))=2 || f(tokenize_line(trim_line(y)))=3 ) 
+                                        then match_n ::(f_a (y::xs) (riga+1) match_n 0 match_n list_int list_if )
+                                     elif f(tokenize_line(trim_line(y)))=1 
+                                        then match_n ::(f_a (y::xs) (riga+1) (match_n-2) 0 match_n list_int list_if )
+                                     else  match_n ::(f_a (y::xs) (riga+1) (match_n-1) 0 match_n list_int list_if )
+                                 |_-> 0 :: (f_a (y::xs) 0 0 0 0 [] [])
+                                  
+                                          
+// se non vuoi realizzare la versione avanzata, non modificarla
+let split (w : int) (s : string) = split_lines s
+
+// questa è la funzione principale da implementare correttamente sia per versione avanzata che per quella normale
+let rec indent (lines : string list) =
+    let  l =  f_a lines 0 0 0 0 [] []
+    let rec abc string l =
+         match (l,string) with
+             | x::xs,s::ss -> (x,s):: abc ss xs
+             |_->[]
+    in abc lines l 
+    
+    //(0, s) :: indent ss
+
